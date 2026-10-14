@@ -1,11 +1,14 @@
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * A class to hold details of audio tracks.
- * Individual tracks may be played.
- * 
+ * Individual tracks may be played, including random playback
+ * and a shuffle that plays every track exactly once.
+ *
  * @author David J. Barnes and Michael Kölling
- * @version 2016.02.29
+ * Modified by Jordy Robalino
+ * @version 2026.10.13
  */
 public class MusicOrganizer
 {
@@ -17,7 +20,7 @@ public class MusicOrganizer
     private TrackReader reader;
 
     /**
-     * Create a MusicOrganizer
+     * Create a MusicOrganizer.
      */
     public MusicOrganizer()
     {
@@ -25,10 +28,11 @@ public class MusicOrganizer
         player = new MusicPlayer();
         reader = new TrackReader();
         readLibrary("../audio");
-        System.out.println("Music library loaded. " + getNumberOfTracks() + " tracks.");
+        System.out.println("Music library loaded. "
+                           + getNumberOfTracks() + " tracks.");
         System.out.println();
     }
-    
+
     /**
      * Add a track file to the collection.
      * @param filename The file name of the track to be added.
@@ -37,7 +41,7 @@ public class MusicOrganizer
     {
         tracks.add(new Track(filename));
     }
-    
+
     /**
      * Add a track to the collection.
      * @param track The track to be added.
@@ -46,9 +50,9 @@ public class MusicOrganizer
     {
         tracks.add(track);
     }
-    
+
     /**
-     * Play a track in the collection.
+     * Play a sample of a track in the collection.
      * @param index The index of the track to be played.
      */
     public void playTrack(int index)
@@ -56,10 +60,54 @@ public class MusicOrganizer
         if(indexValid(index)) {
             Track track = tracks.get(index);
             player.playSample(track.getFilename());
-            System.out.println("Now playing: " + track.getArtist() + " - " + track.getTitle());
+            System.out.println("Now playing: "
+                               + track.getArtist() + " - "
+                               + track.getTitle());
         }
     }
-    
+
+    /**
+     * Exercise 4.43: Play a randomly selected track.
+     */
+    public void playRandomTrack()
+    {
+        if(tracks.isEmpty()) {
+            System.out.println("There are no tracks to play.");
+            return;
+        }
+
+        Random random = new Random();
+        int index = random.nextInt(tracks.size());
+        playTrack(index);
+    }
+
+    /**
+     * Exercise 4.45: Play every track exactly once
+     * in a random order.
+     */
+    public void playAllRandom()
+    {
+        if(tracks.isEmpty()) {
+            System.out.println("There are no tracks to play.");
+            return;
+        }
+
+        Random random = new Random();
+        ArrayList<Integer> remaining = new ArrayList<>();
+
+        // Store each track index in a temporary list.
+        for(int index = 0; index < tracks.size(); index++) {
+            remaining.add(index);
+        }
+
+        // Remove each selected index to prevent repeats.
+        while(!remaining.isEmpty()) {
+            int position = random.nextInt(remaining.size());
+            int trackIndex = remaining.remove(position);
+            playTrack(trackIndex);
+        }
+    }
+
     /**
      * Return the number of tracks in the collection.
      * @return The number of tracks in the collection.
@@ -68,7 +116,7 @@ public class MusicOrganizer
     {
         return tracks.size();
     }
-    
+
     /**
      * List a track from the collection.
      * @param index The index of the track to be listed.
@@ -79,7 +127,7 @@ public class MusicOrganizer
         Track track = tracks.get(index);
         System.out.println(track.getDetails());
     }
-    
+
     /**
      * Show a list of all the tracks in the collection.
      */
@@ -92,7 +140,7 @@ public class MusicOrganizer
         }
         System.out.println();
     }
-    
+
     /**
      * List all tracks by the given artist.
      * @param artist The artist's name.
@@ -105,7 +153,7 @@ public class MusicOrganizer
             }
         }
     }
-    
+
     /**
      * Remove a track from the collection.
      * @param index The index of the track to be removed.
@@ -116,7 +164,7 @@ public class MusicOrganizer
             tracks.remove(index);
         }
     }
-    
+
     /**
      * Play the first track in the collection, if there is one.
      */
@@ -126,7 +174,7 @@ public class MusicOrganizer
             player.startPlaying(tracks.get(0).getFilename());
         }
     }
-    
+
     /**
      * Stop the player.
      */
@@ -136,17 +184,15 @@ public class MusicOrganizer
     }
 
     /**
-     * Determine whether the given index is valid for the collection.
+     * Determine whether the given index is valid.
      * Print an error message if it is not.
      * @param index The index to be checked.
      * @return true if the index is valid, false otherwise.
      */
     private boolean indexValid(int index)
     {
-        // The return value.
-        // Set according to whether the index is valid or not.
         boolean valid;
-        
+
         if(index < 0) {
             System.out.println("Index cannot be negative: " + index);
             valid = false;
@@ -160,12 +206,17 @@ public class MusicOrganizer
         }
         return valid;
     }
-    
+
+    /**
+     * Read music tracks from the given folder.
+     * @param folderName The folder containing the MP3 files.
+     */
     private void readLibrary(String folderName)
     {
-        ArrayList<Track> tempTracks = reader.readTracks(folderName, ".mp3");
+        ArrayList<Track> tempTracks =
+            reader.readTracks(folderName, ".mp3");
 
-        // Put all thetracks into the organizer.
+        // Put all the tracks into the organizer.
         for(Track track : tempTracks) {
             addTrack(track);
         }
